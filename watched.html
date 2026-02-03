@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WATCHED</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;700;800&family=Courier+Prime:ital,wght@0,400;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ===== RESET ===== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px}
+
+/* ===== ROOT ===== */
+:root{
+  --black:#060708;
+  --deep:#0b0c0e;
+  --surface:rgba(255,255,255,.035);
+  --white:#f0ece6;
+  --dim:#7a756e;
+  --red:#d94040;
+  --red-glow:rgba(217,64,64,.22);
+  --font-display:'Syne',sans-serif;
+  --font-body:'Cormorant Garamond',serif;
+  --font-mono:'Courier Prime',monospace;
+}
+
+/* ===== BODY ===== */
+body{
+  background:var(--black);
+  color:var(--white);
+  font-family:var(--font-body);
+  overflow-x:hidden;
+  /* snap the wrapper, not body */
+}
+
+/* ===== SCROLL CONTAINER ===== */
+.scroll-wrap{
+  height:100vh;
+  overflow-y:scroll;
+  scroll-snap-type:y mandatory;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* ===== EACH PAGE ===== */
+.page{
+  min-height:100vh;
+  scroll-snap-align:start;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+/* ===== GRAIN OVERLAY ===== */
+.grain{
+  position:fixed;inset:0;z-index:999;pointer-events:none;
+  opacity:.06;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ===== NAV DOT INDICATOR ===== */
+.nav-dots{
+  position:fixed;right:32px;top:50%;transform:translateY(-50%);
+  z-index:500;display:flex;flex-direction:column;gap:14px;
+}
+.nav-dot{
+  width:8px;height:8px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.25);
+  background:transparent;
+  transition:background .4s,border-color .4s,transform .3s;
+  cursor:pointer;
+}
+.nav-dot.active{
+  background:var(--red);border-color:var(--red);
+  box-shadow:0 0 8px var(--red-glow);
+}
+.nav-dot:hover{transform:scale(1.3);border-color:rgba(255,255,255,.5)}
+
+/* ===== PAGE COUNTER ===== */
+.page-counter{
+  position:fixed;bottom:36px;left:48px;z-index:500;
+  font-family:var(--font-mono);font-size:11px;
+  color:var(--dim);letter-spacing:.2em;
+  transition:opacity .4s;
+}
+.page-counter .cur{color:var(--white);font-weight:700}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar{
+  position:fixed;top:0;left:0;height:2px;
+  background:var(--red);width:0%;z-index:500;
+  transition:width .35s linear;
+}
+
+/* ============================================================
+   PAGE 0 — HERO
+   ============================================================ */
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 48%,rgba(217,64,64,.07) 0%,transparent 70%),
+    var(--black);
+}
+/* slow drifting ambient blobs */
+.blob{
+  position:absolute;border-radius:50%;filter:blur(90px);
+  pointer-events:none;opacity:.5;
+  animation:drift 18s ease-in-out infinite alternate;
+}
+.blob-1{width:500px;height:500px;background:rgba(217,64,64,.06);top:-10%;left:-15%;animation-delay:0s}
+.blob-2{width:380px;height:380px;background:rgba(217,64,64,.04);bottom:-8%;right:-12%;animation-delay:-6s}
+.blob-3{width:280px;height:280px;background:rgba(100,80,70,.04);top:40%;left:60%;animation-delay:-12s}
+@keyframes drift{
+  0%{transform:translate(0,0) scale(1)}
+  100%{transform:translate(40px,30px) scale(1.08)}
+}
+
+.hero-center{
+  position:relative;z-index:2;
+  text-align:center;
+  display:flex;flex-direction:column;align-items:center;
+}
+
+/* BIG TITLE */
+.hero-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(90px,16vw,200px);
+  letter-spacing:-.02em;
+  line-height:.9;
+  color:var(--white);
+  position:relative;
+}
+/* red glitch clone */
+.hero-title .glitch{
+  position:absolute;inset:0;
+  color:var(--red);
+  clip-path:inset(30% 0 40% 0);
+  animation:glitchA 5s steps(1) infinite;
+  opacity:0;
+}
+.hero-title .glitch2{
+  position:absolute;inset:0;
+  color:rgba(217,64,64,.45);
+  clip-path:inset(55% 0 20% 0);
+  animation:glitchB 5s steps(1) infinite;
+  opacity:0;
+}
+@keyframes glitchA{
+  0%,91%,100%{opacity:0;transform:translate(0)}
+  92%{opacity:1;transform:translate(-5px,2px)}
+  93%{opacity:1;transform:translate(4px,-3px)}
+  94%{opacity:0;transform:translate(0)}
+}
+@keyframes glitchB{
+  0%,94%,100%{opacity:0;transform:translate(0)}
+  95%{opacity:1;transform:translate(3px,4px)}
+  96%{opacity:1;transform:translate(-4px,-1px)}
+  97%{opacity:0;transform:translate(0)}
+}
+
+.hero-tag{
+  margin-top:36px;
+  font-family:var(--font-mono);font-size:13px;
+  color:var(--dim);letter-spacing:.28em;text-transform:uppercase;
+  animation:fadeIn .8s .6s both;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* scroll nudge */
+.scroll-nudge{
+  position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+  z-index:3;text-align:center;
+}
+.scroll-nudge span{
+  display:block;width:1px;height:32px;
+  background:linear-gradient(180deg,var(--red),transparent);
+  margin:0 auto;
+  animation:slideNudge 1.8s ease-in-out infinite;
+}
+@keyframes slideNudge{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(18px)}}
+
+/* ============================================================
+   PAGE 1 — CONCEPT / WHAT IS WATCHED
+   ============================================================ */
+.concept-layout{
+  position:relative;z-index:2;
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:120px;align-items:center;
+  max-width:1200px;width:90%;
+}
+.concept-left .label{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.35em;
+  text-transform:uppercase;color:var(--red);margin-bottom:28px;
+  display:flex;align-items:center;gap:12px;
+}
+.concept-left .label::before{content:'';width:28px;height:1px;background:var(--red)}
+
+.concept-left h2{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(42px,5.5vw,68px);line-height:1.05;
+  color:var(--white);margin-bottom:32px;
+}
+.concept-left h2 em{color:var(--red);font-style:italic;font-weight:300}
+.concept-left p{
+  font-size:19px;color:var(--dim);line-height:1.75;margin-bottom:18px;
+}
+
+/* right: eye graphic */
+.eye-wrap{
+  position:relative;width:100%;max-width:420px;margin:0 auto;
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+}
+.eye-ring{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(217,64,64,.12);
+}
+.eye-ring:nth-child(1){width:60%;height:60%;border-color:rgba(217,64,64,.2)}
+.eye-ring:nth-child(2){width:78%;height:78%;animation:spinR 60s linear infinite}
+.eye-ring:nth-child(3){width:95%;height:95%;animation:spinR 90s linear infinite reverse;border-color:rgba(217,64,64,.06)}
+@keyframes spinR{to{transform:rotate(360deg)}}
+
+.eye-pupil{
+  width:72px;height:72px;border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,var(--red) 35%,var(--red-glow) 60%,transparent 75%);
+  box-shadow:0 0 50px var(--red-glow),0 0 100px rgba(217,64,64,.1);
+  animation:pupilPulse 3.2s ease-in-out infinite;
+  position:relative;z-index:2;
+}
+@keyframes pupilPulse{
+  0%,100%{box-shadow:0 0 50px var(--red-glow),0 0 100px rgba(217,64,64,.1)}
+  50%{box-shadow:0 0 70px var(--red-glow),0 0 140px rgba(217,64,64,.18)}
+}
+
+/* subtle page bg */
+.page-1-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 65% 50%,rgba(217,64,64,.045) 0%,transparent 70%),var(--black);
+}
+
+/* ============================================================
+   PAGE 2 — DESIGN PILLARS
+   ============================================================ */
+.pillars-page-bg{
+  position:absolute;inset:0;background:var(--deep);
+}
+.pillars-layout{
+  position:relative;z-index:2;
+  max-width:1100px;width:90%;
+}
+.pillars-layout .center-label{
+  text-align:center;margin-bottom:64px;
+}
+.center-label .label{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.35em;
+  text-transform:uppercase;color:var(--red);
+  display:flex;align-items:center;justify-content:center;gap:12px;
+}
+.center-label .label::before,.center-label .label::after{content:'';width:28px;height:1px;background:var(--red)}
+.center-label h2{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(40px,5vw,60px);color:var(--white);
+  margin-top:18px;line-height:1.1;
+}
+
+.pillars-row{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
+}
+.pillar-card{
+  background:var(--surface);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:8px;
+  padding:40px 28px 34px;
+  position:relative;overflow:hidden;
+  transition:border-color .4s,background .4s;
+}
+.pillar-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--red);transform:scaleX(0);transform-origin:left;
+  transition:transform .5s cubic-bezier(.2,.8,.3,1);
+}
+.pillar-card:hover::before{transform:scaleX(1)}
+.pillar-card:hover{border-color:rgba(217,64,64,.25);background:rgba(255,255,255,.055)}
+
+.pillar-num{
+  font-family:var(--font-display);font-weight:800;font-size:52px;
+  color:rgba(217,64,64,.12);line-height:1;margin-bottom:16px;
+}
+.pillar-card h3{
+  font-family:var(--font-display);font-weight:700;font-size:21px;
+  color:var(--white);margin-bottom:12px;letter-spacing:.01em;
+}
+.pillar-card p{font-size:15px;color:var(--dim);line-height:1.65}
+
+/* ============================================================
+   PAGE 3 — THE ENTITY
+   ============================================================ */
+.entity-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 50% 50% at 35% 50%,rgba(217,64,64,.06) 0%,transparent 70%),
+    var(--black);
+}
+.entity-layout{
+  position:relative;z-index:2;
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:100px;align-items:center;
+  max-width:1200px;width:90%;
+}
+/* left: the visual */
+.entity-vis{
+  display:flex;align-items:center;justify-content:center;
+  position:relative;aspect-ratio:1;max-width:440px;margin:0 auto;
+}
+/* concentric dark rings with red hints */
+.e-ring{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(217,64,64,.1);
+}
+.e-ring:nth-child(1){width:45%;height:45%;border-color:rgba(217,64,64,.25)}
+.e-ring:nth-child(2){width:62%;height:62%;animation:spinR 50s linear infinite}
+.e-ring:nth-child(3){width:80%;height:80%;animation:spinR 72s linear infinite reverse}
+.e-ring:nth-child(4){width:97%;height:97%;border-color:rgba(217,64,64,.05);animation:spinR 100s linear infinite}
+
+/* center orb */
+.entity-orb{
+  width:90px;height:90px;border-radius:50%;
+  background:radial-gradient(circle,rgba(217,64,64,.7) 0%,rgba(217,64,64,.2) 50%,transparent 75%);
+  box-shadow:0 0 60px var(--red-glow),0 0 120px rgba(217,64,64,.08);
+  animation:orbPulse 4s ease-in-out infinite;
+  position:relative;z-index:2;
+}
+@keyframes orbPulse{
+  0%,100%{transform:scale(1);box-shadow:0 0 60px var(--red-glow),0 0 120px rgba(217,64,64,.08)}
+  50%{transform:scale(1.06);box-shadow:0 0 80px var(--red-glow),0 0 150px rgba(217,64,64,.12)}
+}
+
+/* right text */
+.entity-text .label{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.35em;
+  text-transform:uppercase;color:var(--red);margin-bottom:28px;
+  display:flex;align-items:center;gap:12px;
+}
+.entity-text .label::before{content:'';width:28px;height:1px;background:var(--red)}
+.entity-text h2{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(42px,5.5vw,66px);line-height:1.05;
+  color:var(--white);margin-bottom:28px;
+}
+.entity-text h2 em{color:var(--red);font-style:italic;font-weight:300}
+.entity-text p{font-size:18px;color:var(--dim);line-height:1.75;margin-bottom:16px}
+
+.trait-pills{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px}
+.trait-pill{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--red);
+  border:1px solid rgba(217,64,64,.3);
+  padding:7px 16px;border-radius:3px;
+  background:rgba(217,64,64,.06);
+}
+
+/* ============================================================
+   PAGE 4 — BEHAVIOR TRACKING
+   ============================================================ */
+.tracking-bg{position:absolute;inset:0;background:var(--deep)}
+.tracking-layout{
+  position:relative;z-index:2;
+  display:grid;grid-template-columns:1.05fr 1fr;
+  gap:90px;align-items:center;
+  max-width:1200px;width:90%;
+}
+/* left — list */
+.tracking-left .label{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.35em;
+  text-transform:uppercase;color:var(--red);margin-bottom:24px;
+  display:flex;align-items:center;gap:12px;
+}
+.tracking-left .label::before{content:'';width:28px;height:1px;background:var(--red)}
+.tracking-left h2{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(38px,5vw,58px);line-height:1.05;
+  color:var(--white);margin-bottom:36px;
+}
+.tracking-left h2 em{color:var(--red);font-style:italic;font-weight:300}
+
+.track-row{
+  display:flex;align-items:center;gap:18px;
+  padding:18px 0;border-bottom:1px solid rgba(255,255,255,.06);
+}
+.track-row:first-of-type{border-top:1px solid rgba(255,255,255,.06)}
+.track-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+  background:var(--red);box-shadow:0 0 6px var(--red-glow);
+  animation:dotBlink 2.5s ease-in-out infinite;
+}
+.track-row:nth-child(odd) .track-dot{animation-delay:.4s}
+.track-row:nth-child(even) .track-dot{animation-delay:.9s}
+@keyframes dotBlink{0%,100%{opacity:.35}50%{opacity:1}}
+
+.track-row h4{
+  font-family:var(--font-display);font-weight:600;font-size:20px;
+  color:var(--white);margin-bottom:3px;
+}
+.track-row p{font-size:14px;color:var(--dim);line-height:1.5}
+
+/* right — fake terminal */
+.terminal{
+  background:rgba(10,10,12,.85);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,.4);
+}
+.terminal-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:14px 18px;
+  background:rgba(255,255,255,.035);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.t-dot{width:12px;height:12px;border-radius:50%}
+.t-dot:nth-child(1){background:#ff5f57}
+.t-dot:nth-child(2){background:#febc2e}
+.t-dot:nth-child(3){background:#28c840}
+.terminal-bar span{
+  margin-left:8px;font-family:var(--font-mono);font-size:12px;color:var(--dim);
+}
+.terminal-body{
+  padding:28px 24px;
+  font-family:var(--font-mono);font-size:13px;line-height:2.1;
+  color:var(--dim);
+}
+.terminal-body .k{color:var(--red)}  /* keyword */
+.terminal-body .v{color:var(--white)} /* value */
+.terminal-body .c{color:rgba(255,255,255,.2)} /* comment */
+.terminal-body .warn{
+  color:var(--red);font-size:12px;margin-top:14px;
+  border-top:1px solid rgba(217,64,64,.2);padding-top:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.terminal-body .warn::before{content:'⚠';font-size:14px}
+
+/* ============================================================
+   PAGE 5 — ENDINGS
+   ============================================================ */
+.endings-bg{position:absolute;inset:0;background:var(--black)}
+.endings-layout{
+  position:relative;z-index:2;max-width:1100px;width:90%;
+}
+.endings-layout .center-label{text-align:center;margin-bottom:56px}
+.endings-layout .center-label p{
+  font-size:17px;color:var(--dim);max-width:580px;margin:18px auto 0;line-height:1.7;
+}
+.endings-row{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:22px;
+}
+.ending-card{
+  background:var(--surface);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:10px;padding:38px 28px 32px;
+  position:relative;overflow:hidden;
+  transition:border-color .4s,transform .35s;
+}
+.ending-card:hover{border-color:rgba(217,64,64,.3);transform:translateY(-6px)}
+/* top accent line */
+.ending-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--red),transparent);
+  opacity:0;transition:opacity .4s;
+}
+.ending-card:hover::after{opacity:1}
+
+.ending-card .ending-num{
+  font-family:var(--font-display);font-weight:800;font-size:42px;
+  color:rgba(217,64,64,.13);line-height:1;margin-bottom:10px;
+}
+.ending-card h3{
+  font-family:var(--font-display);font-weight:700;font-size:24px;
+  color:var(--white);margin-bottom:8px;
+}
+.ending-card .ending-trigger{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--red);margin-bottom:16px;
+}
+.ending-card p{font-size:15px;color:var(--dim);line-height:1.65}
+
+/* ============================================================
+   PAGE 6 — 15 MIN DEMO
+   ============================================================ */
+.demo-bg{position:absolute;inset:0;background:var(--deep)}
+.demo-layout{
+  position:relative;z-index:2;
+  display:grid;grid-template-columns:1fr 1.1fr;
+  gap:80px;align-items:center;
+  max-width:1200px;width:90%;
+}
+.demo-left .label{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.35em;
+  text-transform:uppercase;color:var(--red);margin-bottom:24px;
+  display:flex;align-items:center;gap:12px;
+}
+.demo-left .label::before{content:'';width:28px;height:1px;background:var(--red)}
+.demo-left h2{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(38px,5vw,56px);line-height:1.05;
+  color:var(--white);margin-bottom:12px;
+}
+.demo-left p{font-size:17px;color:var(--dim);line-height:1.7}
+
+/* timeline */
+.timeline{position:relative;padding-left:28px;margin-top:8px}
+.timeline::before{
+  content:'';position:absolute;left:0;top:6px;bottom:6px;
+  width:1px;background:linear-gradient(180deg,var(--red),rgba(217,64,64,.15));
+}
+.tl-beat{margin-bottom:24px;position:relative}
+.tl-beat::before{
+  content:'';position:absolute;left:-28px;top:7px;
+  width:10px;height:10px;border-radius:50%;
+  border:2px solid var(--red);background:var(--deep);
+}
+.tl-beat .tl-time{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--red);margin-bottom:3px;
+}
+.tl-beat h4{
+  font-family:var(--font-display);font-weight:600;font-size:18px;
+  color:var(--white);margin-bottom:4px;
+}
+.tl-beat p{font-size:14px;color:var(--dim);line-height:1.55}
+
+/* right — tracking panel */
+.demo-panel{
+  background:rgba(10,10,12,.8);
+  border:1px solid rgba(255,255,255,.07);border-radius:10px;
+  overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.35);
+}
+.demo-panel .terminal-bar{} /* reuse */
+.panel-head{
+  padding:20px 24px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.panel-head span{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--dim);
+}
+.panel-head .live{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;
+  color:var(--red);display:flex;align-items:center;gap:6px;
+}
+.panel-head .live::before{
+  content:'';width:6px;height:6px;border-radius:50%;background:var(--red);
+  animation:dotBlink 1.2s ease-in-out infinite;
+}
+.panel-body{padding:4px 0}
+.panel-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:11px 24px;
+  border-bottom:1px solid rgba(255,255,255,.035);
+  transition:background .25s;
+}
+.panel-row:last-child{border-bottom:none}
+.panel-row:hover{background:rgba(255,255,255,.025)}
+.panel-row .pr-name{font-family:var(--font-mono);font-size:12px;color:var(--dim)}
+.panel-row .pr-tag{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;
+  text-transform:uppercase;padding:3px 10px;border-radius:3px;
+}
+.pr-tag.on{background:rgba(217,64,64,.13);color:var(--red)}
+.pr-tag.wait{background:rgba(255,255,255,.05);color:var(--dim)}
+
+/* ============================================================
+   PAGE 7 — CTA / INVEST
+   ============================================================ */
+.cta-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 50%,rgba(217,64,64,.07) 0%,transparent 70%),
+    var(--black);
+}
+.cta-center{
+  position:relative;z-index:2;
+  text-align:center;max-width:720px;width:90%;
+}
+.cta-center .label{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.35em;
+  text-transform:uppercase;color:var(--red);
+  display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:28px;
+}
+.cta-center .label::before,.cta-center .label::after{content:'';width:28px;height:1px;background:var(--red)}
+
+.cta-center h2{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(40px,6vw,68px);line-height:1.05;
+  color:var(--white);margin-bottom:24px;
+}
+.cta-center h2 em{color:var(--red);font-style:italic;font-weight:300}
+.cta-center > p{font-size:18px;color:var(--dim);line-height:1.75;margin-bottom:44px}
+
+.cta-btn{
+  display:inline-block;
+  font-family:var(--font-mono);font-size:13px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--white);text-decoration:none;
+  border:1px solid var(--red);border-radius:4px;
+  padding:18px 48px;position:relative;overflow:hidden;
+  transition:color .4s;
+}
+.cta-btn::before{
+  content:'';position:absolute;inset:0;
+  background:var(--red);transform:translateY(100%);
+  transition:transform .42s cubic-bezier(.2,.8,.3,1);z-index:-1;
+}
+.cta-btn:hover::before{transform:translateY(0)}
+
+/* elevator pitch strip */
+.pitch-strip{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:16px 0;
+  background:rgba(217,64,64,.08);
+  border-top:1px solid rgba(217,64,64,.18);
+  overflow:hidden;white-space:nowrap;z-index:3;
+}
+.pitch-track{
+  display:inline-flex;gap:80px;
+  animation:marquee 24s linear infinite;
+}
+.pitch-track span{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.22em;
+  text-transform:uppercase;color:rgba(255,255,255,.55);flex-shrink:0;
+}
+.pitch-track .sep{color:var(--red);margin:0 8px}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:900px){
+  .concept-layout,.entity-layout,.tracking-layout,.demo-layout{
+    grid-template-columns:1fr;gap:50px;
+  }
+  .pillars-row,.endings-row{grid-template-columns:repeat(2,1fr)}
+  .nav-dots{right:18px}
+  .page-counter{left:24px;bottom:24px}
+}
+@media(max-width:560px){
+  .pillars-row,.endings-row{grid-template-columns:1fr}
+  .nav-dots{display:none}
+  .eye-wrap,.entity-vis{max-width:260px}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="progress-bar" id="progBar"></div>
+
+<!-- nav dots -->
+<div class="nav-dots" id="navDots"></div>
+
+<!-- page counter -->
+<div class="page-counter" id="pageCounter">
+  <span class="cur">01</span> / 08
+</div>
+
+<!-- ========================================================
+     SCROLL CONTAINER
+     ======================================================== -->
+<div class="scroll-wrap" id="scrollWrap">
+
+  <!-- ── PAGE 0: HERO ── -->
+  <div class="page" id="p0">
+    <div class="hero-bg">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+    <div class="hero-center">
+      <h1 class="hero-title">
+        WATCHED
+        <span class="glitch" aria-hidden="true">WATCHED</span>
+        <span class="glitch2" aria-hidden="true">WATCHED</span>
+      </h1>
+      <p class="hero-tag">A psychological horror game that learns you</p>
+    </div>
+    <div class="scroll-nudge"><span></span></div>
+  </div>
+
+  <!-- ── PAGE 1: CONCEPT ── -->
+  <div class="page" id="p1">
+    <div class="page-1-bg"></div>
+    <div class="concept-layout">
+      <div class="concept-left">
+        <div class="label">Game Vision</div>
+        <h2>Not what you choose.<br>What you <em>do.</em></h2>
+        <p>WATCHED is built on a radical premise: the game is watching <em style="color:var(--white)">how you play</em> — not what buttons you press, but how you move, hesitate, explore, and break rules.</p>
+        <p>Every mouse twitch, every idle second, every repeated corridor — it all feeds an invisible system that reshapes the world. The horror adapts to <em style="color:var(--white)">you specifically.</em> No two players face the same game.</p>
+      </div>
+      <div class="concept-right">
+        <div class="eye-wrap">
+          <div class="eye-ring"></div>
+          <div class="eye-ring"></div>
+          <div class="eye-ring"></div>
+          <div class="eye-pupil"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE 2: PILLARS ── -->
+  <div class="page" id="p2">
+    <div class="pillars-page-bg"></div>
+    <div class="pillars-layout">
+      <div class="center-label">
+        <div class="label">Design Pillars</div>
+        <h2>The Foundation</h2>
+      </div>
+      <div class="pillars-row">
+        <div class="pillar-card">
+          <div class="pillar-num">01</div>
+          <h3>Behavior-Driven</h3>
+          <p>Player habits — not menu selections — reshape the world. Mouse speed, hesitation, route repetition, and rule-breaking are all tracked silently.</p>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-num">02</div>
+          <h3>Adaptive Horror</h3>
+          <p>The threat doesn't just get harder — it gets <em>stranger.</em> Chases change presentation. The world reacts to patterns. Difficulty is never a number.</p>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-num">03</div>
+          <h3>NPC Psychology</h3>
+          <p>NPCs don't help — they observe. Their dialogue escalates from casual remarks to deeply unsettling accusations, all reflecting real player behavior.</p>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-num">04</div>
+          <h3>Indie-Realistic</h3>
+          <p>Built for a solo developer or micro-team. No expensive AI. Psychological dread through systemic design, state machines, and intelligent reuse.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE 3: THE ENTITY ── -->
+  <div class="page" id="p3">
+    <div class="entity-bg"></div>
+    <div class="entity-layout">
+      <div class="entity-vis">
+        <div class="e-ring"></div>
+        <div class="e-ring"></div>
+        <div class="e-ring"></div>
+        <div class="e-ring"></div>
+        <div class="entity-orb"></div>
+      </div>
+      <div class="entity-text">
+        <div class="label">The Threat</div>
+        <h2>The<br><em>Entity</em></h2>
+        <p>It has no name. No fixed form. What it has is <em style="color:var(--white)">patience</em> — and an appetite for understanding.</p>
+        <p>It doesn't just chase. It <em style="color:var(--white)">studies.</em> Each encounter is an experiment. Each escape teaches it something new. By the final act, it knows you better than you know yourself.</p>
+        <div class="trait-pills">
+          <span class="trait-pill">Adaptive</span>
+          <span class="trait-pill">Patient</span>
+          <span class="trait-pill">Learning</span>
+          <span class="trait-pill">Personal</span>
+          <span class="trait-pill">Invisible</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE 4: TRACKING ── -->
+  <div class="page" id="p4">
+    <div class="tracking-bg"></div>
+    <div class="tracking-layout">
+      <div class="tracking-left">
+        <div class="label">Core Systems</div>
+        <h2>How the game<br><em>sees</em> you</h2>
+
+        <div class="track-row">
+          <div class="track-dot"></div>
+          <div><h4>Movement Profiling</h4><p>Cursor speed, acceleration, and idle duration build a behavioral fingerprint.</p></div>
+        </div>
+        <div class="track-row">
+          <div class="track-dot"></div>
+          <div><h4>Route Memory</h4><p>Repeated paths trigger environmental shifts — subtle at first, then deeply wrong.</p></div>
+        </div>
+        <div class="track-row">
+          <div class="track-dot"></div>
+          <div><h4>Obedience Index</h4><p>Does the player follow safe options? Rule-breakers are treated as fundamentally different subjects.</p></div>
+        </div>
+        <div class="track-row">
+          <div class="track-dot"></div>
+          <div><h4>Hesitation Detection</h4><p>Pausing at doorways, hovering over objects, backing away — every micro-hesitation is logged.</p></div>
+        </div>
+        <div class="track-row">
+          <div class="track-dot"></div>
+          <div><h4>Exploration vs. Objective</h4><p>Lingering and searching vs. sprinting toward goals. The entity exploits whichever mode you operate in.</p></div>
+        </div>
+      </div>
+
+      <!-- terminal -->
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+          <span>watched_behavior.log</span>
+        </div>
+        <div class="terminal-body">
+<span class="c">// live behavior state</span>
+<span class="k">player.</span><span class="v">movement_profile</span>  →  cautious
+<span class="k">player.</span><span class="v">hesitation_count</span>    →  7
+<span class="k">player.</span><span class="v">route_repeats</span>       →  corridor_3 ×4
+<span class="k">player.</span><span class="v">obedience</span>           →  LOW
+
+<span class="c">// entity learning</span>
+<span class="k">entity.</span><span class="v">learned_pattern</span>     →  updating…
+<span class="k">entity.</span><span class="v">next_manifest</span>      →  <span class="k">CORRIDOR_3</span>
+
+<span class="c">// npc state</span>
+<span class="k">npc[</span><span class="v">warden</span><span class="k">].</span><span class="v">dialogue</span>   →  stage_3
+<span class="k">npc[</span><span class="v">warden</span><span class="k">].</span><span class="v">next_line</span>  →  "You keep coming back here."
+
+<div class="warn">PLAYER PROFILE CONVERGENCE IN 3 ENCOUNTERS</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE 5: ENDINGS ── -->
+  <div class="page" id="p5">
+    <div class="endings-bg"></div>
+    <div class="endings-layout">
+      <div class="center-label">
+        <div class="label">Endings</div>
+        <h2>How It Ends</h2>
+        <p>No ending choices. No dialogue trees. The game watches how you've played across the entire experience — and delivers the conclusion your behavior earned.</p>
+      </div>
+      <div class="endings-row">
+        <div class="ending-card">
+          <div class="ending-num">I</div>
+          <h3>The Compliant</h3>
+          <div class="ending-trigger">High obedience · Low exploration</div>
+          <p>You followed every instruction. Took every safe path. The Entity doesn't need to chase you at the end. It simply opens the door — and you walk through.</p>
+        </div>
+        <div class="ending-card">
+          <div class="ending-num">II</div>
+          <h3>The Unraveled</h3>
+          <div class="ending-trigger">High hesitation · Repeated routes</div>
+          <p>You circled. You returned. You couldn't commit. The world tightened around you — room by room — until the corridors you kept walking simply stopped leading anywhere new.</p>
+        </div>
+        <div class="ending-card">
+          <div class="ending-num">III</div>
+          <h3>The Seen</h3>
+          <div class="ending-trigger">Rule-breaking · Fast movement · High exploration</div>
+          <p>You ran. You broke rules. You pushed boundaries never meant to be found. The Entity stopped hiding. The final scene: a face-to-face confrontation. No escape.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE 6: DEMO ── -->
+  <div class="page" id="p6">
+    <div class="demo-bg"></div>
+    <div class="demo-layout">
+      <div class="demo-left">
+        <div class="label">Playable Demo</div>
+        <h2>First<br><em>15 Minutes</em></h2>
+        <p style="margin-bottom:28px">A beat-by-beat breakdown of the opening — and the behaviors being silently catalogued.</p>
+
+        <div class="timeline">
+          <div class="tl-beat">
+            <div class="tl-time">0:00 – 0:45</div>
+            <h4>Cold Open</h4>
+            <p>Empty room. No tutorial. A single door. The clock starts the moment the mouse moves.</p>
+          </div>
+          <div class="tl-beat">
+            <div class="tl-time">0:45 – 3:00</div>
+            <h4>The First Corridor</h4>
+            <p>Two exits — one lit, one dark. First obedience data point logged.</p>
+          </div>
+          <div class="tl-beat">
+            <div class="tl-time">3:00 – 6:30</div>
+            <h4>NPC Encounter</h4>
+            <p>"The Warden" offers directions. Dialogue is already shaped by how you moved. Hesitated? They noticed.</p>
+          </div>
+          <div class="tl-beat">
+            <div class="tl-time">6:30 – 10:00</div>
+            <h4>The First Shift</h4>
+            <p>A door you passed is now locked. A sound plays from a cleared room. Something is wrong.</p>
+          </div>
+          <div class="tl-beat">
+            <div class="tl-time">10:00 – 15:00</div>
+            <h4>First Presence</h4>
+            <p>The Entity is felt — not seen. Ambient shifts. A shadow. A sound that stops when you stop. The player understands: something is watching.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- tracking panel -->
+      <div class="demo-panel">
+        <div class="terminal-bar">
+          <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+          <span>tracked_behaviors.exe</span>
+        </div>
+        <div class="panel-head">
+          <span>Behaviors tracked</span>
+          <span class="live">Live</span>
+        </div>
+        <div class="panel-body">
+          <div class="panel-row"><span class="pr-name">Mouse hesitation at doorways</span><span class="pr-tag on">Active</span></div>
+          <div class="panel-row"><span class="pr-name">Light vs. shadow path choice</span><span class="pr-tag on">Active</span></div>
+          <div class="panel-row"><span class="pr-name">Movement speed profile</span><span class="pr-tag on">Active</span></div>
+          <div class="panel-row"><span class="pr-name">NPC dialogue read time</span><span class="pr-tag on">Active</span></div>
+          <div class="panel-row"><span class="pr-name">Backtracking frequency</span><span class="pr-tag on">Active</span></div>
+          <div class="panel-row"><span class="pr-name">Idle duration at objects</span><span class="pr-tag on">Active</span></div>
+          <div class="panel-row"><span class="pr-name">Obedience (safe vs risky)</span><span class="pr-tag on">Active</span></div>
+          <div class="panel-row"><span class="pr-name">Exploration depth</span><span class="pr-tag wait">Pending</span></div>
+          <div class="panel-row"><span class="pr-name">Panic response speed</span><span class="pr-tag wait">Pending</span></div>
+          <div class="panel-row"><span class="pr-name">Rule-breaking attempts</span><span class="pr-tag wait">Pending</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE 7: CTA ── -->
+  <div class="page" id="p7">
+    <div class="cta-bg"></div>
+    <div class="cta-center">
+      <div class="label">Investment Opportunity</div>
+      <h2>A horror game<br>that has <em>never<br>existed</em></h2>
+      <p>WATCHED targets the growing market for psychological horror — a genre with proven commercial reach — while introducing a mechanic no game has fully exploited: real-time behavioral adaptation with zero player-facing UI. Designed for indie-realistic scope, built to run on modest budgets with outsized impact.</p>
+      <a href="#" class="cta-btn">Get In Touch</a>
+    </div>
+    <div class="pitch-strip">
+      <div class="pitch-track">
+        <span>The horror isn't chasing you <span class="sep">◆</span> It's studying you</span>
+        <span>Behavior-driven adaptive horror <span class="sep">◆</span> No two playthroughs identical</span>
+        <span>Indie-realistic scope <span class="sep">◆</span> Maximum psychological impact</span>
+        <span>The horror isn't chasing you <span class="sep">◆</span> It's studying you</span>
+        <span>Behavior-driven adaptive horror <span class="sep">◆</span> No two playthroughs identical</span>
+        <span>Indie-realistic scope <span class="sep">◆</span> Maximum psychological impact</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /scroll-wrap -->
+
+<script>
+(function(){
+  const wrap     = document.getElementById('scrollWrap');
+  const pages    = [...document.querySelectorAll('.page')];
+  const total    = pages.length;
+  const progBar  = document.getElementById('progBar');
+  const counter  = document.getElementById('pageCounter');
+
+  // ── Build nav dots ──
+  const dotsWrap = document.getElementById('navDots');
+  const dots = pages.map((_,i)=>{
+    const d = document.createElement('div');
+    d.className = 'nav-dot' + (i===0?' active':'');
+    d.setAttribute('data-i', i);
+    d.addEventListener('click',()=>{
+      pages[i].scrollIntoView({behavior:'scroll',block:'start'});
+    });
+    dotsWrap.appendChild(d);
+    return d;
+  });
+
+  // ── Scroll listener ──
+  let ticking = false;
+  wrap.addEventListener('scroll',()=>{
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(()=>{
+      const scrollTop  = wrap.scrollTop;
+      const scrollH    = wrap.scrollHeight - wrap.clientHeight;
+      // progress bar
+      progBar.style.width = (scrollTop / scrollH * 100) + '%';
+
+      // find active page (center of viewport)
+      const mid = scrollTop + wrap.clientHeight * 0.5;
+      let activeIdx = 0;
+      pages.forEach((p,i)=>{
+        if(p.offsetTop <= mid) activeIdx = i;
+      });
+
+      // update dots
+      dots.forEach((d,i)=>{ d.classList.toggle('active', i===activeIdx); });
+
+      // update counter
+      counter.innerHTML = '<span class="cur">'+String(activeIdx+1).padStart(2,'0')+'</span> / '+String(total).padStart(2,'0');
+
+      ticking = false;
+    });
+  });
+})();
+</script>
+</body>
+</html>
